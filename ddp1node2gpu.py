@@ -4,9 +4,10 @@ Adapted from tutorial: https://yangkky.github.io/2019/07/08/distributed-pytorch-
 
 Execution Command(s)
 
-$ pip install torch
-$ pip install torchvision
-$ python ddp1node1gpu.py -n 1 -g 1 -nr 0 --epochs 2
+$ pip install -r requirement.txt
+$ export MASTER_ADDR=<IP-ADDR-LEADER>
+$ export MASTER_PORT=8888
+$ python ddp1node2gpu.py -n 1 -g 2 -nr 0 --epochs 20
 """
 
 import os
@@ -27,7 +28,7 @@ from torch.optim import lr_scheduler
 DATA_PATH = './data/'
 VAL_PATH = './data/val/'
 TRAIN_PATH = './data/train/'
-IS_SHUFFLED = True  #Set to True for Single GPU. False for Multi-GPU
+IS_SHUFFLED = False  #Set to True for Single GPU. False for Multi-GPU
 BATCH_SIZE = 128
 NUM_WORKERS = 0
 
@@ -41,12 +42,31 @@ TRANSFORM = transforms.Compose([
 def load_images(path):
     return datasets.ImageFolder(path, TRANSFORM)
 
-def dataloader(dataset):
+def sampler(dataset, gpu, args):      #multi-gpu
+    rank = args.nr * args.gpus + gpu
+    return torch.utils.data.distributed.DistributedSampler(
+    	dataset,
+    	num_replicas=args.world_size,
+    	rank=rank
+    )
+
+def dataloader(dataset, sampler):
     return torch.utils.data.DataLoader(dataset=dataset,
                                         batch_size=BATCH_SIZE,
                                         shuffle=IS_SHUFFLED,
                                         num_workers=NUM_WORKERS,
-                                        pin_memory=True)
+                                        pin_memory=True,
+                                        sampler=sampler)
+
+def launch_group(gpu, args):       #Multi-gpu
+    rank = args.nr * args.gpus + gpu	                          
+    dist.init_process_group(                                   
+    	backend='nccl',                                         
+   		init_method='env://',                                   
+    	world_size=args.world_size,                              
+    	rank=rank                                               
+    )
+
 
 def train(gpu, args):
     start_time = time.time()
@@ -68,19 +88,25 @@ def train(gpu, args):
     train_acc= list()
     valid_acc= list()
 
-    # train,val raw images -> train,val dataloaders -> dict(train,val)
-    train_dataset = load_images(TRAIN_PATH)
-    train_loader = dataloader(train_dataset)
-    val_dataset = load_images(VAL_PATH)
-    val_loader = dataloader(val_dataset)
-    phase_dict = {'train': train_loader, 'val': val_loader}
-    phase_size = {'train': len(train_dataset), 'val': len(val_dataset)}
-
     # define loss function (criterion) and optimizer and scheduler
     criterion = nn.CrossEntropyLoss().cuda(gpu)
     optimizer = optim.SGD(model.fc.parameters(), lr=learning_rate, momentum=momentum)
     scheduler = lr_scheduler.StepLR(optimizer, step_size=7, gamma=0.1)
     
+    # Wrap the model for DDP execution
+    model = nn.parallel.DistributedDataParallel(model,
+                                                device_ids=[gpu])
+
+    # train,val raw images -> sampler -> train,val dataloaders -> dict(train,val)
+    train_dataset = load_images(TRAIN_PATH)
+    train_sampler = sampler(train_dataset, gpu, args)
+    train_loader = dataloader(train_dataset, train_sampler)
+    val_dataset = load_images(VAL_PATH)
+    val_sampler = sampler(val_dataset, gpu, args)
+    val_loader = dataloader(val_dataset, val_sampler)
+    phase_dict = {'train': train_loader, 'val': val_loader}
+    phase_size = {'train': len(train_dataset), 'val': len(val_dataset)}
+
     start = datetime.now()
     total_step = len(train_loader)
 
@@ -171,8 +197,9 @@ def main():
     parser.add_argument('--epochs', default=2, type=int, metavar='N',
                         help='number of total epochs to run')
     args = parser.parse_args()
-    train(0, args)
-
+    args.world_size = args.gpus * args.nodes            # Multi-gpu
+    mp.spawn(train, nprocs=args.gpus, args=(args,))     # Multi-gpu
+    # NOTE: MASTER_ADDR and MASTER_P0RT to be set in terminal as env variables
 
 if __name__ == '__main__':
     main()
