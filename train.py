@@ -45,7 +45,7 @@ data_transforms = {
 
 # load images, classes into dataloader and apply transformations
 
-data_dir = "./Data"
+data_dir = "./data"
 batch_size = 128
 num_workers = 0
 
