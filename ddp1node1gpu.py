@@ -2,8 +2,8 @@
 Script for Training on One Node, One GPU
 Adapted from tutorial: https://yangkky.github.io/2019/07/08/distributed-pytorch-tutorial.html
 
-Executable Call:
-$ 
+Execution Command:
+$ python src/ddp1node1gpu.py -n 1 -g 1 -nr 0
 """
 
 import os
@@ -17,7 +17,6 @@ import torch
 import torch.nn as nn
 import torch.distributed as dist
 from apex.parallel import DistributedDataParallel as DDP
-from apex import amp
 from torchvision import datasets
 import time
 from torch import optim
@@ -41,14 +40,7 @@ def transform():
 def load_images(path):
     return datasets.ImageFolder(path, transform)
 
-# def sampler(dataset):    # Only for Multiple GPUs
-#     return torch.utils.data.distributed.DistributedSampler(
-#     	dataset,
-#     	num_replicas=args.world_size,
-#     	rank=rank
-#     )
-
-def loader(dataset):
+def dataloader(dataset):
     return torch.utils.data.DataLoader(dataset=dataset,
                                         batch_size=BATCH_SIZE,
                                         shuffle=IS_SHUFFLED,
@@ -77,9 +69,9 @@ def train(gpu, args):
 
     # train,val raw images -> train,val dataloaders -> dict(train,val)
     train_dataset = load_images(TRAIN_PATH)
-    train_loader = loader(train_dataset)
+    train_loader = dataloader(train_dataset)
     val_dataset = load_images(VAL_PATH)
-    val_loader = loader(val_dataset)
+    val_loader = dataloader(val_dataset)
     phase_dict = {'train': train_loader, 'val': val_loader}
     phase_size = {'train': len(train_dataset), 'val': len(val_dataset)}
 
