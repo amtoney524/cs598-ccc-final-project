@@ -32,8 +32,7 @@ IS_SHUFFLED = True  #Set to True for Single GPU. False for Multi-GPU
 BATCH_SIZE = 128
 NUM_WORKERS = 0
 
-def transform():
-    return transforms.Compose([
+TRANSFORM = transforms.Compose([
             transforms.Resize(224),
             transforms.RandomResizedCrop(224),
             transforms.ToTensor(),
@@ -41,7 +40,7 @@ def transform():
         ])
 
 def load_images(path):
-    return datasets.ImageFolder(path, transform)
+    return datasets.ImageFolder(path, TRANSFORM)
 
 def dataloader(dataset):
     return torch.utils.data.DataLoader(dataset=dataset,
