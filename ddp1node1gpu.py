@@ -20,7 +20,6 @@ import torchvision.transforms as transforms
 import torch
 import torch.nn as nn
 import torch.distributed as dist
-import torch.nn.parallel.DistributedDataParallel as DDP
 from torchvision import datasets
 import time
 from torch import optim
