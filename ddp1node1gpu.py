@@ -2,8 +2,12 @@
 Script for Training on One Node, One GPU
 Adapted from tutorial: https://yangkky.github.io/2019/07/08/distributed-pytorch-tutorial.html
 
-Execution Command:
-$ python src/ddp1node1gpu.py -n 1 -g 1 -nr 0
+Execution Command(s)
+
+$ pip install torch
+$ pip install torchvision
+$ pip install apex
+$ python ddp1node1gpu.py -n 1 -g 1 -nr 0
 """
 
 import os
@@ -16,7 +20,7 @@ import torchvision.transforms as transforms
 import torch
 import torch.nn as nn
 import torch.distributed as dist
-from apex.parallel import DistributedDataParallel as DDP
+import torch.nn.parallel.DistributedDataParallel as DDP
 from torchvision import datasets
 import time
 from torch import optim
