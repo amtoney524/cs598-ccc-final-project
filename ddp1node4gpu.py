@@ -3,11 +3,15 @@ Script for Training on One Node, One GPU
 Adapted from tutorial: https://yangkky.github.io/2019/07/08/distributed-pytorch-tutorial.html
 
 Execution Command(s)
+$ sudo apt update
+$ pip3 install torch
+$ pip3 install torchvision
 
-$ pip install -r requirement.txt
+
+$ pip install -r requirements.txt
 $ export MASTER_ADDR=<IP-ADDR-LEADER>
 $ export MASTER_PORT=8888
-$ python ddp1node2gpu.py -n 1 -g 4 -nr 0 --epochs 20
+$ python3 ddp1node4gpu.py -n 1 -g 4 -nr 0 --epochs 20
 """
 
 import os
