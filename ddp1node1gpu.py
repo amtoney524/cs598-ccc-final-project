@@ -4,8 +4,8 @@ Adapted from tutorial: https://yangkky.github.io/2019/07/08/distributed-pytorch-
 
 Execution Command(s)
 
-$ pip install torch
-$ pip install torchvision
+$ pip3 install torch
+$ pip3 install torchvision
 $ python ddp1node1gpu.py -n 1 -g 1 -nr 0 --epochs 2
 """
 
@@ -24,31 +24,32 @@ import time
 from torch import optim
 from torch.optim import lr_scheduler
 
-DATA_PATH = './data/'
-VAL_PATH = './data/val/'
-TRAIN_PATH = './data/train/'
-IS_SHUFFLED = True  #Set to True for Single GPU. False for Multi-GPU
-BATCH_SIZE = 128
-NUM_WORKERS = 0
-
-TRANSFORM = transforms.Compose([
-            transforms.Resize(224),
-            transforms.RandomResizedCrop(224),
-            transforms.ToTensor(),
-            transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
-        ])
-
-def load_images(path):
-    return datasets.ImageFolder(path, TRANSFORM)
-
-def dataloader(dataset):
-    return torch.utils.data.DataLoader(dataset=dataset,
-                                        batch_size=BATCH_SIZE,
-                                        shuffle=IS_SHUFFLED,
-                                        num_workers=NUM_WORKERS,
-                                        pin_memory=True)
-
 def train(gpu, args):
+    DATA_PATH = './data/'
+    VAL_PATH = './data/val/'
+    TRAIN_PATH = './data/train/'
+    IS_SHUFFLED = True  #Set to True for Single GPU. False for Multi-GPU
+    BATCH_SIZE = 128
+    NUM_WORKERS = 0
+
+    TRANSFORM = transforms.Compose([
+                transforms.Resize(224),
+                transforms.RandomResizedCrop(224),
+                transforms.ToTensor(),
+                transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
+            ])
+
+    def load_images(path):
+        return datasets.ImageFolder(path, TRANSFORM)
+
+    def dataloader(dataset):
+        return torch.utils.data.DataLoader(dataset=dataset,
+                                            batch_size=BATCH_SIZE,
+                                            shuffle=IS_SHUFFLED,
+                                            num_workers=NUM_WORKERS,
+                                            pin_memory=True)
+
+
     start_time = time.time()
     since = time.time()
     torch.manual_seed(0)
@@ -158,7 +159,7 @@ def train(gpu, args):
 
         # load best model weights
         model.load_state_dict(best_model_wts)
-        return model, train_acc, valid_acc
+    return model, train_acc, valid_acc
 
 
 def main():
