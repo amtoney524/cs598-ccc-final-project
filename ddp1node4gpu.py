@@ -29,50 +29,52 @@ import time
 from torch import optim
 from torch.optim import lr_scheduler
 
-DATA_PATH = './data/'
-VAL_PATH = './data/val/'
-TRAIN_PATH = './data/train/'
-IS_SHUFFLED = False  #Set to True for Single GPU. False for Multi-GPU
-BATCH_SIZE = 128
-NUM_WORKERS = 0
-
-TRANSFORM = transforms.Compose([
-            transforms.Resize(224),
-            transforms.RandomResizedCrop(224),
-            transforms.ToTensor(),
-            transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
-        ])
-
-def load_images(path):
-    return datasets.ImageFolder(path, TRANSFORM)
-
-def sampler(dataset, gpu, args):      #multi-gpu
-    rank = args.nr * args.gpus + gpu
-    return torch.utils.data.distributed.DistributedSampler(
-    	dataset,
-    	num_replicas=args.world_size,
-    	rank=rank
-    )
-
-def dataloader(dataset, sampler):
-    return torch.utils.data.DataLoader(dataset=dataset,
-                                        batch_size=BATCH_SIZE,
-                                        shuffle=IS_SHUFFLED,
-                                        num_workers=NUM_WORKERS,
-                                        pin_memory=True,
-                                        sampler=sampler)
-
-def launch_group(gpu, args):       #Multi-gpu
-    rank = args.nr * args.gpus + gpu	                          
-    dist.init_process_group(                                   
-    	backend='nccl',                                         
-   		init_method='env://',                                   
-    	world_size=args.world_size,                              
-    	rank=rank                                               
-    )
-
-
 def train(gpu, args):
+
+    DATA_PATH = './data/'
+    VAL_PATH = './data/val/'
+    TRAIN_PATH = './data/train/'
+    IS_SHUFFLED = False  #Set to True for Single GPU. False for Multi-GPU
+    BATCH_SIZE = 128
+    NUM_WORKERS = 0
+
+    TRANSFORM = transforms.Compose([
+                transforms.Resize(224),
+                transforms.RandomResizedCrop(224),
+                transforms.ToTensor(),
+                transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
+            ])
+
+    def load_images(path):
+        return datasets.ImageFolder(path, TRANSFORM)
+
+    def sampler(dataset, gpu, args):      #multi-gpu
+        rank = args.nr * args.gpus + gpu
+        return torch.utils.data.distributed.DistributedSampler(
+            dataset,
+            num_replicas=args.world_size,
+            rank=rank
+        )
+
+    def dataloader(dataset, sampler):
+        return torch.utils.data.DataLoader(dataset=dataset,
+                                            batch_size=BATCH_SIZE,
+                                            shuffle=IS_SHUFFLED,
+                                            num_workers=NUM_WORKERS,
+                                            pin_memory=True,
+                                            sampler=sampler)
+
+    def launch_group(gpu, args):       #Multi-gpu
+        rank = args.nr * args.gpus + gpu	                          
+        dist.init_process_group(                                   
+            backend='nccl',                                         
+            init_method='env://',                                   
+            world_size=args.world_size,                              
+            rank=rank                                               
+        )
+
+
+
     start_time = time.time()
     since = time.time()
     torch.manual_seed(0)
@@ -188,7 +190,7 @@ def train(gpu, args):
 
         # load best model weights
         model.load_state_dict(best_model_wts)
-        return model, train_acc, valid_acc
+    return model, train_acc, valid_acc
 
 
 def main():
