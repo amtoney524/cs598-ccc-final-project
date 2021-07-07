@@ -73,7 +73,7 @@ def train(gpu, args):
             rank=rank                                               
         )
 
-
+    launch_group(gpu, args)
 
     start_time = time.time()
     since = time.time()
