@@ -8,7 +8,7 @@ $ pip3 install torch
 $ pip3 install torchvision
 
 
-$ pip install -r requirements.txt
+$ pip3 install -r requirements.txt
 $ export MASTER_ADDR=<IP-ADDR-LEADER>
 $ export MASTER_PORT=8888
 
@@ -17,6 +17,10 @@ Master:    $ python3 ddp1node4gpu.py -n 1 -g 4 -nr 0 --epochs 20
 Worker 1:  $ python3 ddp1node4gpu.py -n 1 -g 4 -nr 1 --epochs 20
 Worker 2:  $ python3 ddp1node4gpu.py -n 1 -g 4 -nr 2 --epochs 20
 Worker 3:  $ python3 ddp1node4gpu.py -n 1 -g 4 -nr 3 --epochs 20
+
+Optional env variables for debugging:
+export NCCL_DEBUG=INFO
+export NCCL_DEBUG_SUBSYS=ALL
 """
 
 import os
