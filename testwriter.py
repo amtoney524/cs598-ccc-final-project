@@ -16,6 +16,10 @@ EC2 configs ->
     Security Groups: Enable SSH from "This IP"
   
 - mount point: /mnt/efs/fs1
+$ cd /mnt/efs/fs1
+$ sudo chmod 777 .
+$ git clone https://github.com/amtoney524/cs598-ccc-final-project.git
+$ sudo git checkout ddp
 
 
 EFS Security Group: sg-d4cc56cf
@@ -30,7 +34,7 @@ $ sudo mount -t efs [fs-XXXXXXXX]:/ /path/to/mount/dir
 
 
 def main():
-    with open('/test-logs/testlog.txt', 'w') as f:
+    with open('/testlog.txt', 'w') as f:
         for i in range(len(100)):
             f.write(f'log: {i}')
 
