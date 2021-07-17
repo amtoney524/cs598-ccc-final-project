@@ -239,8 +239,8 @@ def train(gpu, args):
 
         # load best model weights
         model.load_state_dict(best_model_wts)
-        f.close()
         torch.save(model, './covid_resnet18_epoch%d.pt' %epoch )
+    f.close()
     return model, train_acc, valid_acc
 
 
