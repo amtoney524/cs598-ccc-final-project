@@ -4,19 +4,28 @@ Adapted from tutorial: https://yangkky.github.io/2019/07/08/distributed-pytorch-
 
 Execution Command(s)
 $ sudo apt update
+OR sudo yum update
 $ pip3 install torch
 $ pip3 install torchvision
 
 
+export PATH=env:// export MASTER_ADDR=3.234.239.60
+export PATH=env:// export MASTER_PORT=8888
 $ pip3 install -r requirements.txt
 $ export MASTER_ADDR=<IP-ADDR-LEADER>
 $ export MASTER_PORT=8888
 
+$ ssh -i "Jon-ashley-nodirbek-keypair.pem" ec2-user@
+
 One each node in the cluster...
-Master:    $ python3 ddp1node4gpu.py -n 1 -g 4 -nr 0 --epochs 20
-Worker 1:  $ python3 ddp1node4gpu.py -n 1 -g 4 -nr 1 --epochs 20
-Worker 2:  $ python3 ddp1node4gpu.py -n 1 -g 4 -nr 2 --epochs 20
-Worker 3:  $ python3 ddp1node4gpu.py -n 1 -g 4 -nr 3 --epochs 20
+Master:    $ python3 ddp1node4gpu.py -n 4 -g 4 -nr 0 --epochs 20
+Worker 1:  $ python3 ddp1node4gpu.py -n 4 -g 4 -nr 1 --epochs 20
+Worker 2:  $ python3 ddp1node4gpu.py -n 4 -g 4 -nr 2 --epochs 20
+Worker 3:  $ python3 ddp1node4gpu.py -n 4 -g 4 -nr 3 --epochs 20
+
+Testing 2 nodes:
+Master:    $ python3 ddp4node4gpu.py -n 2 -g 1 -nr 0 --epochs 5
+Worker 1:  $ python3 ddp4node4gpu.py -n 2 -g 1 -nr 1 --epochs 5
 
 Optional env variables for debugging:
 export NCCL_DEBUG=INFO
@@ -81,7 +90,7 @@ def train(gpu, args):
         rank = args.nr * args.gpus + gpu	                          
         dist.init_process_group(                                   
             backend='nccl',                                         
-            init_method='env://',                                   
+            init_method='tcp://52.3.236.107:8888',  # 'tcp://<master ip addr>:8888'                               
             world_size=args.world_size,                              
             rank=rank                                               
         )
