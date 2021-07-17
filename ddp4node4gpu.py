@@ -42,7 +42,7 @@ def train(gpu, args):
     is_master = False
     if args.nr == 0:
         is_master = True
-    f = open('/mnt/efs/fs1/ddp-train-logs.txt', 'w')
+    f = open('/ddp-train-logs.txt', 'w')
 
     DATA_PATH = './data/'
     VAL_PATH = './data/val/'
@@ -81,7 +81,7 @@ def train(gpu, args):
         rank = args.nr * args.gpus + gpu	                          
         dist.init_process_group(                                   
             backend='nccl',                                         
-            init_method='env://mnt/efs/fs1/',                                   
+            init_method='env://',                                   
             world_size=args.world_size,                              
             rank=rank                                               
         )

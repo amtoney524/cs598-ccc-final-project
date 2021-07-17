@@ -29,17 +29,19 @@ $ sudo git checkout ddp
 
 
 EFS Security Group: sg-d4cc56cf
-
+$ sudo mkdir 
+$ sudo mkdir ~/ddp
 $ mkdir ~/ddp
 $ sudo mount -t nfs -o nfsvers=4.1,rsize=1048576,wsize=1048576,hard,timeo=600,retrans=2,noresvport fs-25d7a491.efs.us-east-1.amazonaws.com:/ ~/ddp
 $ sudo mount -t efs [fs-XXXXXXXX]:/ /path/to/mount/dir
+$ sudo mount -t nfs -o nfsvers=4.1,rsize=1048576,wsize=1048576,hard,timeo=600,retrans=2,noresvport fs-25d7a491.efs.us-east-1.amazonaws.com:/ /mnt/efs/fs1
 
 Cleanup
 $ sudo rm -r cs598-ccc-final-project --recursive
 """
 
 def main():
-    with open('/mnt/efs/fs1/testlog.txt', 'w') as f:
+    with open('/testlog.txt', 'w') as f:
         for i in range(100):
             f.write(f'log: {i}\n')
 
