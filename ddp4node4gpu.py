@@ -50,6 +50,10 @@ from torch import optim
 from torch.optim import lr_scheduler
 
 def train(gpu, args):
+    def print_write(s, f):
+        print(s)
+        f.write(s)
+
     print('train function entered...\n')
     is_master = False
     if args.nr == 0:
@@ -149,13 +153,11 @@ def train(gpu, args):
 
     for epoch in range(args.epochs):
         s = f'Node: {args.nr}\n'
-        print(s)
-        f.write(s)
-        print('Epoch {}/{}\n'.format(epoch + 1, args.epochs))
-        print('-' * 10)
-        if is_master:
-            f.write('Epoch {}/{}\n'.format(epoch + 1, args.epochs))
-            f.write('-' * 10)
+        print_write(s, f)
+        s = f'Epoch {epoch + 1}/{args.epochs}\n'
+        print_write(s, f)
+        s = '' * 10
+        print_write(s, f)
 
         # Each epoch has a training and validation phase
         for phase in phase_dict.keys():
@@ -198,17 +200,15 @@ def train(gpu, args):
                 running_corrects += torch.sum(preds == labels.data)
 
                 cur_acc = torch.sum(preds == labels.data).double() / BATCH_SIZE
-                print("\npreds:", preds, '\n')
-                print("label:", labels.data, '\n')
-                print("%d-th epoch, %d-th batch (size=%d), %s acc= %.3f \n" % (
-                        epoch+1, i+1, len(labels), phase, cur_acc))
-                if is_master:
-                    s = f"\npreds: {preds}\n"
-                    f.write(s)
-                    s = f"label: {labels.data}\n"
-                    f.write(s)
-                    s = f"{epoch+1}-th epoch, {i+1}-th batch (size={len(labels)}), {phase} acc={cur_acc}\n"
-                    f.write(s)
+
+                s = f'Node: {args.nr}\n'
+                print_write(s,f)
+                s = f"\npreds: {preds}\n"
+                print_write(s, f)
+                s = f"label: {labels.data}\n"
+                print_write(s, f)
+                s = f"{epoch+1}-th epoch, {i+1}-th batch (size={len(labels)}), {phase} acc={cur_acc}\n"
+                print_write(s, f)
 
                 if is_train_phase:
                     train_acc.append(cur_acc)
@@ -218,11 +218,8 @@ def train(gpu, args):
                 epoch_loss = running_loss / size
                 epoch_acc = running_corrects.double() / size
 
-                print('{} Loss: {:.4f} Acc: {:.4f} \n\n'.format(
-                        phase, epoch_loss, epoch_acc))
-                if is_master:
-                    s = f'{phase} Loss: {epoch_loss} Acc: {epoch_acc} \n\n'
-                    f.write(s)
+                s = f'{phase} Loss: {epoch_loss} Acc: {epoch_acc} \n\n'
+                print_write(s,f)
 
                 # deep copy the model
                 if (not is_train_phase) and (epoch_acc > best_acc):
@@ -231,14 +228,11 @@ def train(gpu, args):
                     best_model_wts = copy.deepcopy(model.state_dict())
 
         time_elapsed = time.time() - since
-        print('Training complete in {:.0f}m {:.0f}s'.format(
-                time_elapsed // 60, time_elapsed % 60))
-        print('Best val Acc= %.3f at Epoch: %d' % (best_acc, best_epoch))
-        if is_master:
-            s = f'Training complete in {time_elapsed // 60}m {time_elapsed % 60}s'
-            f.write(s)
-            s = f'Best val Acc= {best_acc} at Epoch: {best_epoch}\n'
-            f.write(s)
+
+        s = f'Training complete in {time_elapsed // 60}m {time_elapsed % 60}s'
+        print_write(s, f)
+        s = f'Best val Acc= {best_acc} at Epoch: {best_epoch}\n'
+        print_write(s, f)
 
         # load best model weights
         model.load_state_dict(best_model_wts)
