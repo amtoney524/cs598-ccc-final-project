@@ -148,6 +148,9 @@ def train(gpu, args):
     total_step = len(train_loader)
 
     for epoch in range(args.epochs):
+        s = f'Node: {args.nr}\n'
+        print(s)
+        f.write(s)
         print('Epoch {}/{}\n'.format(epoch + 1, args.epochs))
         print('-' * 10)
         if is_master:
@@ -255,8 +258,7 @@ def main():
                         help='number of total epochs to run')
     args = parser.parse_args()
     args.world_size = args.gpus * args.nodes            # Multi-gpu
-    model, train_acc, valid_acc, f = mp.spawn(train, nprocs=args.gpus, args=(args,))     # Multi-gpu
-    f.close()
+    mp.spawn(train, nprocs=args.gpus, args=(args,))     # Multi-gpu
     # NOTE: MASTER_ADDR and MASTER_P0RT to be set in terminal as env variables
 
 if __name__ == '__main__':
