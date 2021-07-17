@@ -200,10 +200,12 @@ def train(gpu, args):
                 print("%d-th epoch, %d-th batch (size=%d), %s acc= %.3f \n" % (
                         epoch+1, i+1, len(labels), phase, cur_acc))
                 if is_master:
-                    f.write("\npreds:", preds, '\n')
-                    f.write("label:", labels.data, '\n')
-                    f.write("%d-th epoch, %d-th batch (size=%d), %s acc= %.3f \n" % (
-                        epoch+1, i+1, len(labels), phase, cur_acc), '\n')
+                    s = f"\npreds: {preds}\n"
+                    f.write(s)
+                    s = f"label: {labels.data}\n"
+                    f.write(s)
+                    s = f"{epoch+1}-th epoch, {i+1}-th batch (size={len(labels)}), {phase} acc={cur_acc}\n"
+                    f.write(s)
 
                 if is_train_phase:
                     train_acc.append(cur_acc)
@@ -216,8 +218,8 @@ def train(gpu, args):
                 print('{} Loss: {:.4f} Acc: {:.4f} \n\n'.format(
                         phase, epoch_loss, epoch_acc))
                 if is_master:
-                    f.write('{} Loss: {:.4f} Acc: {:.4f} \n\n'.format(
-                        phase, epoch_loss, epoch_acc), '\n')
+                    s = f'{phase} Loss: {epoch_loss} Acc: {epoch_acc} \n\n'
+                    f.write(s)
 
                 # deep copy the model
                 if (not is_train_phase) and (epoch_acc > best_acc):
@@ -230,9 +232,10 @@ def train(gpu, args):
                 time_elapsed // 60, time_elapsed % 60))
         print('Best val Acc= %.3f at Epoch: %d' % (best_acc, best_epoch))
         if is_master:
-            f.write('Training complete in {:.0f}m {:.0f}s'.format(
-                time_elapsed // 60, time_elapsed % 60), '\n')
-            f.write('Best val Acc= %.3f at Epoch: %d' % (best_acc, best_epoch), '\n')
+            s = f'Training complete in {time_elapsed // 60}m {time_elapsed % 60}s'
+            f.write(s)
+            s = f'Best val Acc= {best_acc} at Epoch: {best_epoch}\n'
+            f.write(s)
 
         # load best model weights
         model.load_state_dict(best_model_wts)
