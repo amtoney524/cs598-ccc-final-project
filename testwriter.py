@@ -32,9 +32,6 @@ Cleanup
 $ sudo rm -r cs598-ccc-final-project --recursive
 """
 
-
-
-
 def main():
     with open('/mnt/efs/fs1/testlog.txt', 'w') as f:
         for i in range(100):
