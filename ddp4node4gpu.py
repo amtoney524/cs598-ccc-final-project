@@ -240,8 +240,7 @@ def train(gpu, args):
         # load best model weights
         model.load_state_dict(best_model_wts)
         torch.save(model, './covid_resnet18_epoch%d.pt' %epoch )
-    f.close()
-    return model, train_acc, valid_acc
+    return model, train_acc, valid_acc, f
 
 
 def main():
@@ -256,7 +255,8 @@ def main():
                         help='number of total epochs to run')
     args = parser.parse_args()
     args.world_size = args.gpus * args.nodes            # Multi-gpu
-    mp.spawn(train, nprocs=args.gpus, args=(args,))     # Multi-gpu
+    model, train_acc, valid_acc, f = mp.spawn(train, nprocs=args.gpus, args=(args,))     # Multi-gpu
+    f.close()
     # NOTE: MASTER_ADDR and MASTER_P0RT to be set in terminal as env variables
 
 if __name__ == '__main__':
