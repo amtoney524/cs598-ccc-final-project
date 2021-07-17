@@ -13,7 +13,13 @@ EC2 configs ->
     File Systems:
             - fs-25d7a491 | ddp
     Edit Installs script to include ML packages
-    Security Groups: Enable SSH from "This IP"
+        $ sudo apt update
+        $ pip3 install torch
+        $ pip3 install torchvision
+    Security Groups: 
+        - Enable SSH from "This IP"
+        - TCP All Inbound
+
   
 - mount point: /mnt/efs/fs1
 $ cd /mnt/efs/fs1
