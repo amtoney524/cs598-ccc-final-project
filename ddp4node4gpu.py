@@ -51,7 +51,7 @@ def train(gpu, args):
     is_master = False
     if args.nr == 0:
         is_master = True
-    f = open('/ddp-train-logs.txt', 'w')
+    f = open('/cs598-ccc-final-project/ddp-train-logs.txt', 'w')
 
     DATA_PATH = './data/'
     VAL_PATH = './data/val/'
