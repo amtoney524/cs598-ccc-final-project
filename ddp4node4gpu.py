@@ -30,6 +30,8 @@ Worker 1:  $ python3 ddp4node4gpu.py -n 2 -g 1 -nr 1 --epochs 5
 Optional env variables for debugging:
 export NCCL_DEBUG=INFO
 export NCCL_DEBUG_SUBSYS=ALL
+
+To kill all python processes: $ sudo pkill python
 """
 
 import os
@@ -48,6 +50,7 @@ from torch import optim
 from torch.optim import lr_scheduler
 
 def train(gpu, args):
+    print('train function entered...\n')
     is_master = False
     if args.nr == 0:
         is_master = True
@@ -67,10 +70,14 @@ def train(gpu, args):
                 transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
             ])
 
+    
     def load_images(path):
+        print('loading & transforming images...\n')
         return datasets.ImageFolder(path, TRANSFORM)
 
+    
     def sampler(dataset, gpu, args):      #multi-gpu
+        print('configuring sampler ...\n')
         rank = args.nr * args.gpus + gpu
         return torch.utils.data.distributed.DistributedSampler(
             dataset,
@@ -79,6 +86,7 @@ def train(gpu, args):
         )
 
     def dataloader(dataset, sampler):
+        print('executing dataloader...\n')
         return torch.utils.data.DataLoader(dataset=dataset,
                                             batch_size=BATCH_SIZE,
                                             shuffle=IS_SHUFFLED,
@@ -87,6 +95,7 @@ def train(gpu, args):
                                             sampler=sampler)
 
     def launch_group(gpu, args):       #Multi-gpu
+        print('launching process groups...\n')
         rank = args.nr * args.gpus + gpu	                          
         dist.init_process_group(                                   
             backend='nccl',                                         
@@ -233,6 +242,7 @@ def train(gpu, args):
 
 
 def main():
+    print('ddp4node4gpy.py Running...\n')
     parser = argparse.ArgumentParser()
     parser.add_argument('-n', '--nodes', default=1, type=int, metavar='N')
     parser.add_argument('-g', '--gpus', default=1, type=int,
