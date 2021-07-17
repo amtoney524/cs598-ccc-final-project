@@ -139,6 +139,8 @@ def train(gpu, args):
     total_step = len(train_loader)
 
     for epoch in range(args.epochs):
+        print('Epoch {}/{}\n'.format(epoch + 1, args.epochs))
+        print('-' * 10)
         if is_master:
             f.write('Epoch {}/{}\n'.format(epoch + 1, args.epochs))
             f.write('-' * 10)
@@ -184,6 +186,10 @@ def train(gpu, args):
                 running_corrects += torch.sum(preds == labels.data)
 
                 cur_acc = torch.sum(preds == labels.data).double() / BATCH_SIZE
+                print("\npreds:", preds, '\n')
+                print("label:", labels.data, '\n')
+                print("%d-th epoch, %d-th batch (size=%d), %s acc= %.3f \n" % (
+                        epoch+1, i+1, len(labels), phase, cur_acc))
                 if is_master:
                     f.write("\npreds:", preds, '\n')
                     f.write("label:", labels.data, '\n')
@@ -198,6 +204,8 @@ def train(gpu, args):
                 epoch_loss = running_loss / size
                 epoch_acc = running_corrects.double() / size
 
+                print('{} Loss: {:.4f} Acc: {:.4f} \n\n'.format(
+                        phase, epoch_loss, epoch_acc))
                 if is_master:
                     f.write('{} Loss: {:.4f} Acc: {:.4f} \n\n'.format(
                         phase, epoch_loss, epoch_acc), '\n')
@@ -209,6 +217,9 @@ def train(gpu, args):
                     best_model_wts = copy.deepcopy(model.state_dict())
 
         time_elapsed = time.time() - since
+        print('Training complete in {:.0f}m {:.0f}s'.format(
+                time_elapsed // 60, time_elapsed % 60))
+        print('Best val Acc= %.3f at Epoch: %d' % (best_acc, best_epoch))
         if is_master:
             f.write('Training complete in {:.0f}m {:.0f}s'.format(
                 time_elapsed // 60, time_elapsed % 60), '\n')
@@ -217,6 +228,7 @@ def train(gpu, args):
         # load best model weights
         model.load_state_dict(best_model_wts)
         f.close()
+        torch.save(model, './covid_resnet18_epoch%d.pt' %epoch )
     return model, train_acc, valid_acc
 
 
