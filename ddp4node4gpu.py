@@ -33,6 +33,11 @@ export NCCL_DEBUG=INFO
 export NCCL_DEBUG_SUBSYS=ALL
 
 To kill all python processes: $ sudo pkill python
+To recursively copy to s3:
+aws s3 cp output s3://ddp-results/2node-2gpu/node0/ --recursive
+aws s3 cp output s3://ddp-results/2node-2gpu/node1/ --recursive
+aws s3 cp output s3://ddp-results/2node-2gpu/node2/ --recursive
+aws s3 cp output s3://ddp-results/2node-2gpu/node3/ --recursive
 """
 
 import os
