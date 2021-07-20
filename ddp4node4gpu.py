@@ -53,6 +53,7 @@ from torch.optim import lr_scheduler
 
 def train(gpu, args):
 
+    torch.manual_seed(0)
     def print_write(s, f):
         print(s)
         f.write(s)
@@ -62,20 +63,17 @@ def train(gpu, args):
     f = open('ddp-train-logs.txt', 'w')
     fj = open('train-info.json', 'w')
 
-    start_datetime = datetime.now(timezone.utc).fromisoformat('2011-11-04 00:05:23.283')
-
-    start_time = time.time()
-    since = time.time()
+    start_datetime = datetime.now(timezone.utc)
+    start_datetime_str = start_datetime.fromisoformat('2011-11-04 00:05:23.283')
+    
     train_info = train_info = {"node_rank": args.nr,
                 "num_nodes": args.nodes,
                 "node_gpus": args.gpus,
                 "ephochs": args.epochs,
                 "bucketsize": args.bucketsize,
-                "start_datetime": start_datetime,
+                "start_datetime": start_datetime_str,
                 "end_datetime": "",
-                "start_time": start_time,
-                "end_time": "",
-                "elapsed_time": "",
+                "elapsed_datetime": "",
                 "best_epoch": "",
                 "best_acc": "",
                 "notes": ""
@@ -84,18 +82,15 @@ def train(gpu, args):
     
     s = '=======================================================================\n' \
         '                PyTorch DDP Training Output\n' \
-        f'                 {start_time}\n\n' \
+        f'                 {start_datetime_str}\n\n' \
         f'node rank {args.nr}\n' \
         f'number of nodes: {args.nodes}\n' \
         f'number of GPUs per node: {args.gpus}\n' \
         f'number of ephochs: {args.epochs}\n' \
         f'max bucket size (MiB): {args.bucketsize}\n' \
         '=======================================================================\n'
-
+    
     print_write(s, f)
-    start_time = time.time()
-    since = time.time()
-    torch.manual_seed(0)
 
     is_master = False
     if args.nr == 0:
@@ -187,11 +182,11 @@ def train(gpu, args):
     phase_dict = {'train': train_loader, 'val': val_loader}
     phase_size = {'train': len(train_dataset), 'val': len(val_dataset)}
 
-    start = datetime.now()
     total_step = len(train_loader)
 
     for epoch in range(args.epochs):
-        s = f'UTC Datetime of ephoch {epoch}: {datetime.utcnow()}'
+        t = datetime.now(timezone.utc).fromisoformat('2011-11-04 00:05:23.283')
+        s = f'UTC Datetime of ephoch {epoch}: {t}'
         print_write(s, f)
         s = f'\nNode: {args.nr}\n'
         print_write(s, f)
@@ -269,18 +264,20 @@ def train(gpu, args):
                     best_epoch = epoch
                     best_model_wts = copy.deepcopy(model.state_dict())
 
-        end_time = time.time()
-        time_elapsed = end_time - since
-        end_datetime = datetime.now(timezone.utc).fromisoformat('2011-11-04 00:05:23.283')
+
+
+        end_datetime = datetime.now(timezone.utc)
+        end_datetime_str = end_datetime.fromisoformat('2011-11-04 00:05:23.283')
+        time_elapsed = end_datetime - start_datetime
+
         s = '=======================================================================\n' \
         '                PyTorch DDP Model Training Results:\n\n' \
-        f'Completed at: {end_datetime}\n' \
-        f'Elaplsed time:  {time_elapsed // 60}m {time_elapsed % 60}s\n' \
+        f'Completed at: {end_datetime_str}\n' \
+        f'Elaplsed time: {repr(time_elapsed)}\n' \
         f'Best val Acc= {best_acc} at Epoch: {best_epoch}\n' \
         '=======================================================================\n'
         print_write(s, f)
-        train_info["end_time"] = end_time
-        train_info["end_datetime"] = end_datetime
+        train_info["end_datetime"] = end_datetime_str
         train_info["elapsed_time"] = time_elapsed
         train_info["best_epoch"] = best_epoch
         train_info["best_acc"] = best_acc
