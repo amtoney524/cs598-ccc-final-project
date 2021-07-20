@@ -143,7 +143,7 @@ def train(gpu, args):
         rank = args.nr * args.gpus + gpu	                          
         dist.init_process_group(                                   
             backend='nccl',                                         
-            init_method='tcp://172.31.71.81:8888',  # 'tcp://<master ip addr>:8888'                               
+            init_method='tcp://54.92.188.89:8888',  # 'tcp://<master ip addr>:8888'                               
             world_size=args.world_size,                              
             rank=rank                                               
         )
