@@ -38,7 +38,7 @@ To kill all python processes: $ sudo pkill python
 import os
 import copy
 import json
-from datetime import datetime
+from datetime import datetime, timezone
 import argparse
 import torch.multiprocessing as mp
 import torchvision
@@ -56,13 +56,14 @@ def train(gpu, args):
     def print_write(s, f):
         print(s)
         f.write(s)
+
     PATH = os.getcwd() 
     print(PATH)
     f = open('ddp-train-logs.txt', 'w')
     fj = open('train-info.json', 'w')
 
-    start_datetime = datetime.utcnow()
-    start_datetime = start_datetime.strftime("%m-%d-%Y %H:%M:%S %Z")
+    start_datetime = datetime.now(timezone.utc).fromisoformat('2011-11-04 00:05:23.283')
+
     start_time = time.time()
     since = time.time()
     train_info = train_info = {"node_rank": args.nr,
@@ -268,9 +269,9 @@ def train(gpu, args):
                     best_epoch = epoch
                     best_model_wts = copy.deepcopy(model.state_dict())
 
-        end_time = time.time().strftime("%d %m, %Y, %H, %M, %S, %Z")
+        end_time = time.time()
         time_elapsed = end_time - since
-        end_datetime = datetime.utcnow()
+        end_datetime = datetime.now(timezone.utc).fromisoformat('2011-11-04 00:05:23.283')
         s = '=======================================================================\n' \
         '                PyTorch DDP Model Training Results:\n\n' \
         f'Completed at: {end_datetime}\n' \
