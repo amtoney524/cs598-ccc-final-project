@@ -60,8 +60,8 @@ def train(gpu, args):
 
     PATH = os.getcwd() 
     print(PATH)
-    f = open('ddp-train-logs.txt', 'w')
-    fj = open('train-info.json', 'w')
+    f = open('output/console.txt', 'w')
+    fj = open('output/train-info.json', 'w')
 
     start_datetime = datetime.now(timezone.utc)
     start_datetime_str = start_datetime.isoformat() + ' UTC'
@@ -267,26 +267,26 @@ def train(gpu, args):
 
 
 
-        end_datetime = datetime.now(timezone.utc)
-        end_datetime_str = end_datetime.isoformat() + ' UTC'
-        time_elapsed = end_datetime - start_datetime
+    end_datetime = datetime.now(timezone.utc)
+    end_datetime_str = end_datetime.isoformat() + ' UTC'
+    time_elapsed = end_datetime - start_datetime
 
-        s = '=======================================================================\n' \
-        '                PyTorch DDP Model Training Results:\n\n' \
-        f'Completed at: {end_datetime_str}\n' \
-        f'Elaplsed time: {repr(time_elapsed)}\n' \
-        f'Best val Acc= {best_acc} at Epoch: {best_epoch}\n' \
-        '=======================================================================\n'
-        print_write(s, f)
-        train_info["end_datetime"] = end_datetime_str
-        train_info["elapsed_time"] = repr(time_elapsed)
-        train_info["best_epoch"] = best_epoch
-        train_info["best_acc"] = str(best_acc)
-        json.dump(train_info, fj)
+    s = '=======================================================================\n' \
+    '                PyTorch DDP Model Training Results:\n\n' \
+    f'Completed at: {end_datetime_str}\n' \
+    f'Elaplsed time: {repr(time_elapsed)}\n' \
+    f'Best val Acc= {best_acc} at Epoch: {best_epoch}\n' \
+    '=======================================================================\n'
+    print_write(s, f)
+    train_info["end_datetime"] = end_datetime_str
+    train_info["elapsed_time"] = repr(time_elapsed)
+    train_info["best_epoch"] = best_epoch
+    train_info["best_acc"] = str(best_acc)
+    json.dump(train_info, fj)
 
-        # load best model weights
-        model.load_state_dict(best_model_wts)
-        torch.save(model, 'covid_resnet18_epoch%d.pt' %epoch )
+    # load best model weights
+    model.load_state_dict(best_model_wts)
+    torch.save(model, 'output/covid_resnet18_epoch%d.pt' %epoch )
 
     return model, train_acc, valid_acc, f
 
