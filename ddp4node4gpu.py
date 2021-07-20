@@ -169,8 +169,8 @@ def train(gpu, args):
     
     # Wrap the model for DDP execution
     model = nn.parallel.DistributedDataParallel(model,
-                                                device_ids=[gpu])
-                                                 #bucket_cap_mb=args.bucketsize # Where bucket cap is specified
+                                                device_ids=[gpu],
+                                                bucket_cap_mb=args.bucketsize) # Where bucket cap is specified
 
     # train,val raw images -> sampler -> train,val dataloaders -> dict(train,val)
     train_dataset = load_images(TRAIN_PATH)
@@ -279,9 +279,9 @@ def train(gpu, args):
         '=======================================================================\n'
         print_write(s, f)
         train_info["end_datetime"] = end_datetime_str
-        train_info["elapsed_time"] = time_elapsed
+        train_info["elapsed_time"] = repr(time_elapsed)
         train_info["best_epoch"] = best_epoch
-        train_info["best_acc"] = best_acc
+        train_info["best_acc"] = str(best_acc)
         json.dump(train_info, fj)
 
         # load best model weights
