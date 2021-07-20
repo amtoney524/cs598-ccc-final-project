@@ -61,7 +61,8 @@ def train(gpu, args):
     f = open('ddp-train-logs.txt', 'w')
     fj = open('train-info.json', 'w')
 
-    start_datetime = datetime.utcnow().strftime("%d %m, %Y, %H, %M, %S, %Z")
+    start_datetime = datetime.utcnow()
+    start_datetime = start_datetime.strftime("%m-%d-%Y %H:%M:%S %Z")
     start_time = time.time()
     since = time.time()
     train_info = train_info = {"node_rank": args.nr,
