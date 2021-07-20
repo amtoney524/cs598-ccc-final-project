@@ -36,6 +36,11 @@ To kill all python processes: $ sudo pkill python
 To recursively copy to s3:
 aws s3 cp output s3://ddp-results/2node-2gpu/node0/ --recursive
 aws s3 cp output s3://ddp-results/2node-2gpu/node1/ --recursive
+
+aws s3 cp output s3://ddp-results/2node-2gpu/node0/bucket-25 --recursive
+aws s3 cp output s3://ddp-results/2node-2gpu/node1/bucket-25 --recursive
+
+
 aws s3 cp output s3://ddp-results/2node-2gpu/node2/ --recursive
 aws s3 cp output s3://ddp-results/2node-2gpu/node3/ --recursive
 """
@@ -145,7 +150,7 @@ def train(gpu, args):
         rank = args.nr * args.gpus + gpu	                          
         dist.init_process_group(                                   
             backend='nccl',                                         
-            init_method='tcp://54.92.188.89:8888',  # 'tcp://<master ip addr>:8888'                               
+            init_method='tcp://3.226.255.58:8888',  # 'tcp://<master ip addr>:8888'                               
             world_size=args.world_size,                              
             rank=rank                                               
         )
