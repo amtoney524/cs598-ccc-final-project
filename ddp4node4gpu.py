@@ -7,6 +7,7 @@ $ sudo apt update
 OR sudo yum update
 $ pip3 install torch
 $ pip3 install torchvision
+$ sudo yum install iptraf
 
 
 export PATH=env:// export MASTER_ADDR=3.234.239.60
@@ -55,10 +56,12 @@ def train(gpu, args):
     def print_write(s, f):
         print(s)
         f.write(s)
-    f = open('./output/ddp-train-logs.txt', 'w')
-    fj = open('./output/train-info.json', 'w')
+    PATH = os.getcwd() 
+    print(PATH)
+    f = open(PATH + '/output/ddp-train-logs.txt', 'w')
+    fj = open(PATH + '/ouput/train-info.json', 'w')
 
-    start_datetime = datetime.utcnow()
+    start_datetime = datetime.utcnow().strftime("%d %m, %Y, %H, %M, %S, %Z")
     start_time = time.time()
     since = time.time()
     train_info = train_info = {"node_rank": args.nr,
@@ -140,7 +143,7 @@ def train(gpu, args):
         rank = args.nr * args.gpus + gpu	                          
         dist.init_process_group(                                   
             backend='nccl',                                         
-            init_method='tcp://3.239.83.17:8888',  # 'tcp://<master ip addr>:8888'                               
+            init_method='tcp://172.31.71.81:8888',  # 'tcp://<master ip addr>:8888'                               
             world_size=args.world_size,                              
             rank=rank                                               
         )
@@ -169,8 +172,8 @@ def train(gpu, args):
     
     # Wrap the model for DDP execution
     model = nn.parallel.DistributedDataParallel(model,
-                                                device_ids=[gpu],
-                                                 bucket_cap_mb=args.bucketsize)  # Where bucket cap is specified
+                                                device_ids=[gpu])
+                                                 #bucket_cap_mb=args.bucketsize # Where bucket cap is specified
 
     # train,val raw images -> sampler -> train,val dataloaders -> dict(train,val)
     train_dataset = load_images(TRAIN_PATH)
@@ -264,7 +267,7 @@ def train(gpu, args):
                     best_epoch = epoch
                     best_model_wts = copy.deepcopy(model.state_dict())
 
-        end_time = time.time()
+        end_time = time.time().strftime("%d %m, %Y, %H, %M, %S, %Z")
         time_elapsed = end_time - since
         end_datetime = datetime.utcnow()
         s = '=======================================================================\n' \
@@ -283,7 +286,7 @@ def train(gpu, args):
 
         # load best model weights
         model.load_state_dict(best_model_wts)
-        torch.save(model, './output/covid_resnet18_epoch%d.pt' %epoch )
+        torch.save(model, PATH + '/output/covid_resnet18_epoch%d.pt' %epoch )
 
     return model, train_acc, valid_acc, f
 
