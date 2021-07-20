@@ -18,14 +18,14 @@ $ export MASTER_PORT=8888
 $ ssh -i "Jon-ashley-nodirbek-keypair.pem" ec2-user@
 
 One each node in the cluster...
-Master:    $ python3 ddp1node4gpu.py -n 4 -g 4 -nr 0 --epochs 20
-Worker 1:  $ python3 ddp1node4gpu.py -n 4 -g 4 -nr 1 --epochs 20
-Worker 2:  $ python3 ddp1node4gpu.py -n 4 -g 4 -nr 2 --epochs 20
-Worker 3:  $ python3 ddp1node4gpu.py -n 4 -g 4 -nr 3 --epochs 20
+Master:    $ python3 ddp1node4gpu.py -n 4 -g 4 -nr 0 --epochs 20 -b 25
+Worker 1:  $ python3 ddp1node4gpu.py -n 4 -g 4 -nr 1 --epochs 20 -b 25
+Worker 2:  $ python3 ddp1node4gpu.py -n 4 -g 4 -nr 2 --epochs 20 -b 25
+Worker 3:  $ python3 ddp1node4gpu.py -n 4 -g 4 -nr 3 --epochs 20 -b 25
 
 Testing 2 nodes:
-Master:    $ python3 ddp4node4gpu.py -n 2 -g 1 -nr 0 --epochs 5
-Worker 1:  $ python3 ddp4node4gpu.py -n 2 -g 1 -nr 1 --epochs 5
+Master:    $ python3 ddp4node4gpu.py -n 2 -g 1 -nr 0 --epochs 5 -b 25
+Worker 1:  $ python3 ddp4node4gpu.py -n 2 -g 1 -nr 1 --epochs 5 -b 25
 
 Optional env variables for debugging:
 export NCCL_DEBUG=INFO
@@ -36,6 +36,7 @@ To kill all python processes: $ sudo pkill python
 
 import os
 import copy
+import json
 from datetime import datetime
 import argparse
 import torch.multiprocessing as mp
@@ -50,15 +51,51 @@ from torch import optim
 from torch.optim import lr_scheduler
 
 def train(gpu, args):
+
     def print_write(s, f):
         print(s)
         f.write(s)
+    f = open('./output/ddp-train-logs.txt', 'w')
+    fj = open('./output/train-info.json', 'w')
 
-    print('train function entered...\n')
+    start_datetime = datetime.utcnow()
+    start_time = time.time()
+    since = time.time()
+    train_info = train_info = {"node_rank": args.nr,
+                "num_nodes": args.nodes,
+                "node_gpus": args.gpus,
+                "ephochs": args.epochs,
+                "bucketsize": args.bucketsize,
+                "start_datetime": start_datetime,
+                "end_datetime": "",
+                "start_time": start_time,
+                "end_time": "",
+                "elapsed_time": "",
+                "best_epoch": "",
+                "best_acc": "",
+                "notes": ""
+                }
+    
+    
+    s = '=======================================================================\n' \
+        '                PyTorch DDP Training Output\n' \
+        f'                 {start_time}\n\n' \
+        f'node rank {args.nr}\n' \
+        f'number of nodes: {args.nodes}\n' \
+        f'number of GPUs per node: {args.gpus}\n' \
+        f'number of ephochs: {args.epochs}\n' \
+        f'max bucket size (MiB): {args.bucketsize}\n' \
+        '=======================================================================\n'
+
+    print_write(s, f)
+    start_time = time.time()
+    since = time.time()
+    torch.manual_seed(0)
+
     is_master = False
     if args.nr == 0:
         is_master = True
-    f = open('./ddp-train-logs.txt', 'w')
+    
 
     DATA_PATH = './data/'
     VAL_PATH = './data/val/'
@@ -103,16 +140,12 @@ def train(gpu, args):
         rank = args.nr * args.gpus + gpu	                          
         dist.init_process_group(                                   
             backend='nccl',                                         
-            init_method='tcp://52.3.236.107:8888',  # 'tcp://<master ip addr>:8888'                               
+            init_method='tcp://3.239.83.17:8888',  # 'tcp://<master ip addr>:8888'                               
             world_size=args.world_size,                              
             rank=rank                                               
         )
 
     launch_group(gpu, args)
-
-    start_time = time.time()
-    since = time.time()
-    torch.manual_seed(0)
 
     # load model, configure training params
     model = torchvision.models.resnet18(pretrained=True, progress=False)
@@ -136,7 +169,8 @@ def train(gpu, args):
     
     # Wrap the model for DDP execution
     model = nn.parallel.DistributedDataParallel(model,
-                                                device_ids=[gpu])
+                                                device_ids=[gpu],
+                                                 bucket_cap_mb=args.bucketsize)  # Where bucket cap is specified
 
     # train,val raw images -> sampler -> train,val dataloaders -> dict(train,val)
     train_dataset = load_images(TRAIN_PATH)
@@ -152,7 +186,9 @@ def train(gpu, args):
     total_step = len(train_loader)
 
     for epoch in range(args.epochs):
-        s = f'Node: {args.nr}\n'
+        s = f'UTC Datetime of ephoch {epoch}: {datetime.utcnow()}'
+        print_write(s, f)
+        s = f'\nNode: {args.nr}\n'
         print_write(s, f)
         s = f'Epoch {epoch + 1}/{args.epochs}\n'
         print_write(s, f)
@@ -201,7 +237,8 @@ def train(gpu, args):
 
                 cur_acc = torch.sum(preds == labels.data).double() / BATCH_SIZE
 
-                s = f'Node: {args.nr}\n'
+                print_write(datetime.utcnow(), f)
+                s = f'\nNode: {args.nr}\n'
                 print_write(s,f)
                 s = f"\npreds: {preds}\n"
                 print_write(s, f)
@@ -227,16 +264,27 @@ def train(gpu, args):
                     best_epoch = epoch
                     best_model_wts = copy.deepcopy(model.state_dict())
 
-        time_elapsed = time.time() - since
-
-        s = f'Training complete in {time_elapsed // 60}m {time_elapsed % 60}s'
+        end_time = time.time()
+        time_elapsed = end_time - since
+        end_datetime = datetime.utcnow()
+        s = '=======================================================================\n' \
+        '                PyTorch DDP Model Training Results:\n\n' \
+        f'Completed at: {end_datetime}\n' \
+        f'Elaplsed time:  {time_elapsed // 60}m {time_elapsed % 60}s\n' \
+        f'Best val Acc= {best_acc} at Epoch: {best_epoch}\n' \
+        '=======================================================================\n'
         print_write(s, f)
-        s = f'Best val Acc= {best_acc} at Epoch: {best_epoch}\n'
-        print_write(s, f)
+        train_info["end_time"] = end_time
+        train_info["end_datetime"] = end_datetime
+        train_info["elapsed_time"] = time_elapsed
+        train_info["best_epoch"] = best_epoch
+        train_info["best_acc"] = best_acc
+        json.dump(train_info, fj)
 
         # load best model weights
         model.load_state_dict(best_model_wts)
-        torch.save(model, './covid_resnet18_epoch%d.pt' %epoch )
+        torch.save(model, './output/covid_resnet18_epoch%d.pt' %epoch )
+
     return model, train_acc, valid_acc, f
 
 
@@ -250,6 +298,9 @@ def main():
                         help='ranking within the nodes')
     parser.add_argument('--epochs', default=2, type=int, metavar='N',
                         help='number of total epochs to run')
+
+    parser.add_argument('-b', '--bucketsize', default=25, type=int, metavar='N',
+                        help='max bucket size of gradients')
     args = parser.parse_args()
     args.world_size = args.gpus * args.nodes            # Multi-gpu
     mp.spawn(train, nprocs=args.gpus, args=(args,))     # Multi-gpu
