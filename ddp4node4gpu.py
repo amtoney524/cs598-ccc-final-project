@@ -64,7 +64,7 @@ def train(gpu, args):
     fj = open('train-info.json', 'w')
 
     start_datetime = datetime.now(timezone.utc)
-    start_datetime_str = start_datetime.fromisoformat('2011-11-04 00:05:23.283')
+    start_datetime_str = start_datetime.fromisoformat('YYYY-DD-MM HH:MM:SS')
     
     train_info = train_info = {"node_rank": args.nr,
                 "num_nodes": args.nodes,
@@ -185,7 +185,7 @@ def train(gpu, args):
     total_step = len(train_loader)
 
     for epoch in range(args.epochs):
-        t = datetime.now(timezone.utc).fromisoformat('2011-11-04 00:05:23.283')
+        t = datetime.now(timezone.utc).fromisoformat('YYYY-DD-MM HH:MM:SS')
         s = f'UTC Datetime of ephoch {epoch}: {t}'
         print_write(s, f)
         s = f'\nNode: {args.nr}\n'
@@ -237,7 +237,8 @@ def train(gpu, args):
 
                 cur_acc = torch.sum(preds == labels.data).double() / BATCH_SIZE
 
-                print_write(datetime.utcnow(), f)
+                t = datetime.now(timezone.utc).fromisoformat('YYYY-DD-MM HH:MM:SS')
+                print_write(t, f)
                 s = f'\nNode: {args.nr}\n'
                 print_write(s,f)
                 s = f"\npreds: {preds}\n"
@@ -267,7 +268,7 @@ def train(gpu, args):
 
 
         end_datetime = datetime.now(timezone.utc)
-        end_datetime_str = end_datetime.fromisoformat('2011-11-04 00:05:23.283')
+        end_datetime_str = end_datetime.fromisoformat('YYYY-DD-MM HH:MM:SS')
         time_elapsed = end_datetime - start_datetime
 
         s = '=======================================================================\n' \
