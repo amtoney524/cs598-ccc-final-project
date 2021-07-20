@@ -58,8 +58,8 @@ def train(gpu, args):
         f.write(s)
     PATH = os.getcwd() 
     print(PATH)
-    f = open(PATH + '/output/ddp-train-logs.txt', 'w')
-    fj = open(PATH + '/ouput/train-info.json', 'w')
+    f = open('ddp-train-logs.txt', 'w')
+    fj = open('train-info.json', 'w')
 
     start_datetime = datetime.utcnow().strftime("%d %m, %Y, %H, %M, %S, %Z")
     start_time = time.time()
@@ -286,7 +286,7 @@ def train(gpu, args):
 
         # load best model weights
         model.load_state_dict(best_model_wts)
-        torch.save(model, PATH + '/output/covid_resnet18_epoch%d.pt' %epoch )
+        torch.save(model, 'covid_resnet18_epoch%d.pt' %epoch )
 
     return model, train_acc, valid_acc, f
 
