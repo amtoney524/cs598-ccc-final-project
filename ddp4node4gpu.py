@@ -37,8 +37,8 @@ To recursively copy to s3:
 aws s3 cp output s3://ddp-results/2node-2gpu/node0/ --recursive
 aws s3 cp output s3://ddp-results/2node-2gpu/node1/ --recursive
 
-aws s3 cp output s3://ddp-results/2node-2gpu/node0/bucket-25 --recursive
-aws s3 cp output s3://ddp-results/2node-2gpu/node1/bucket-25 --recursive
+aws s3 cp output s3://ddp-results/2node-2gpu/node0/bucket-25-test --recursive
+aws s3 cp output s3://ddp-results/2node-2gpu/node1/bucket-25-test --recursive
 
 
 aws s3 cp output s3://ddp-results/2node-2gpu/node2/ --recursive
@@ -278,7 +278,7 @@ def train(gpu, args):
 
     end_datetime = datetime.now(timezone.utc)
     end_datetime_str = end_datetime.isoformat() + ' UTC'
-    time_elapsed = (end_datetime - start_datetime).toal_seconds()
+    time_elapsed = (end_datetime - start_datetime).total_seconds()
 
     s = '=======================================================================\n' \
     '                PyTorch DDP Model Training Results:\n\n' \
