@@ -1,0 +1,57 @@
+#### NOTE:
+   Please ensure all output files are written to 'output' subdir
+   This allows for an easier s3 recursive copy
+
+##### Single node, multiple GPU setup #######
+
+1) Open three shells in your EC2 instance
+2) git clone repo
+3) cd repo
+4) if not exists, $ mkdir output
+
+##### Multiple node, multiple GPU setup #######
+
+1) Open four shells in each EC2 instance
+2) git clone repo
+3) cd repo
+4) if not exists, $ mkdir output
+
+5) Launch each monitoring tool in each shell
+     * NOTE: network monitoring should only be launched for multiple nodes
+6) Launch framework
+7) "ctr + c" to kill each process after training
+8) cd to repo
+9) execute these commands for each node:
+    1node-4gpu (1 x p3.8xlarge):
+        $ aws s3 cp output s3://horovod-results/1node-4gpu/node0/ --recursive
+        $ aws s3 cp output s3://horovod-results/1node-4gpu/node1/ --recursive  
+    2node-2gpu (2 x p3.2xlarge):  ...aka the development config.
+        $ aws s3 cp output s3://horovod-results/2node-2gpu/node0/ --recursive
+        $ aws s3 cp output s3://horovod-results/2node-2gpu/node1/ --recursive
+    4node-4gpu (4 x p3.2xlarge):
+        $ aws s3 cp output s3://horovod-results/4node-4gpu/node0/ --recursive
+        $ aws s3 cp output s3://horovod-results/4node-4gpu/node1/ --recursive
+10) done.
+
+##### Nvidia Monitoring ####### 
+$ cd output
+$ sudo chmod 777 ./
+$ sudo nvidia-smi dmon -s tu -o DT -d 1 -f "nvidi-logs"
+##### System Monitoring #########
+$ cd output
+$ vmstat 1 -t > systemlogs.txt
+####### Network Monitoring ########
+wget https://frenchfries.net/paul/tcpstat/tcpstat-1.5.tar.gz
+cd tcpstat-1.5.tar.gz
+sudo yum install gcc
+sudo yum install libpcap*
+./configure
+make
+sudo make install
+sudo chmod u+s /usr/local/bin/tcpstat
+tcpstat -i eth0 -f 'tcp port 8888' -e -o "Time:%S\tTCPpackets=%T\tbytes=%N\tavgpacketsize=%a\tBps=%B\tnetworkload=%l\n" -F 1 > networklogs.txt
+
+
+
+
+

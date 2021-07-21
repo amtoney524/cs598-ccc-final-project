@@ -79,11 +79,10 @@ def train(gpu, args):
     train_info = train_info = {"node_rank": args.nr,
                 "num_nodes": args.nodes,
                 "node_gpus": args.gpus,
-                "ephochs": args.epochs,
+                "epochs": args.epochs,
                 "bucketsize": args.bucketsize,
                 "start_datetime": start_datetime_str,
                 "end_datetime": "",
-                "elapsed_datetime": "",
                 "best_epoch": "",
                 "best_acc": "",
                 "notes": ""
@@ -150,7 +149,7 @@ def train(gpu, args):
         rank = args.nr * args.gpus + gpu	                          
         dist.init_process_group(                                   
             backend='nccl',                                         
-            init_method='tcp://3.226.255.58:8888',  # 'tcp://<master ip addr>:8888'                               
+            init_method='tcp://3.237.199.6:8888',  # 'tcp://<master ip addr>:8888'                               
             world_size=args.world_size,                              
             rank=rank                                               
         )
@@ -279,12 +278,12 @@ def train(gpu, args):
 
     end_datetime = datetime.now(timezone.utc)
     end_datetime_str = end_datetime.isoformat() + ' UTC'
-    time_elapsed = end_datetime - start_datetime
+    time_elapsed = (end_datetime - start_datetime).toal_seconds()
 
     s = '=======================================================================\n' \
     '                PyTorch DDP Model Training Results:\n\n' \
     f'Completed at: {end_datetime_str}\n' \
-    f'Elaplsed time: {repr(time_elapsed)}\n' \
+    f'Elaplsed time: {time_elapsed} seconds\n' \
     f'Best val Acc= {best_acc} at Epoch: {best_epoch}\n' \
     '=======================================================================\n'
     print_write(s, f)
@@ -296,7 +295,7 @@ def train(gpu, args):
 
     # load best model weights
     model.load_state_dict(best_model_wts)
-    torch.save(model, 'output/covid_resnet18_epoch%d.pt' %epoch )
+    torch.save(model, 'output/covid_resnet18_epoch%d.pt' %best_epoch )
 
     return model, train_acc, valid_acc, f
 
