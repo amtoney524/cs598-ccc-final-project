@@ -38,7 +38,8 @@ $ cd output
 $ vmstat 1 -t > systemlogs.txt
 ####### FINAL TESTED LINE ########
 wget https://frenchfries.net/paul/tcpstat/tcpstat-1.5.tar.gz
-cd tcpstat-1.5.tar.gz
+tar -zxvf tcpstat-1.5.tar.gz
+cd tcpstat-1.5
 sudo yum install gcc
 sudo yum install libpcap*
 ./configure
