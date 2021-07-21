@@ -28,21 +28,36 @@ $ nvidia-smi dmon -s tu -o DT
 $ nvidia-smi dmon -s tu -o DT -d 5
 
 
-TODO: SET PATHING FOR UTILITIES TO GO TO 'output' directory in the repo folder.
 
 ##### FINAL TESTED LINE ####### 
 $ cd output
 $ sudo chmod 777 ./
-$ sudo nvidia-smi dmon -s tu -o DT -d 5 -f "nvidia-logs-rank-n"
+$ sudo nvidia-smi dmon -s tu -o DT -d 1 -f "nvidi-logs"
 ##### FINAL TEST LINE #########
 $ cd output
-$ vmstat 5 -t > node-logs-rank-n.txt
-####### FINAL TEST LINE
+$ vmstat 1 -t > systemlogs.txt
+####### FINAL TESTED LINE ########
+wget https://frenchfries.net/paul/tcpstat/tcpstat-1.5.tar.gz
+cd tcpstat-1.5.tar.gz
+sudo yum install gcc
+sudo yum install libpcap*
+./configure
+make
+sudo make install
+sudo chmod u+s /usr/local/bin/tcpstat
+tcpstat -i eth0 -f 'tcp port 8888' -e -o "Time:%S\tTCPpackets=%T\tbytes=%N\tavgpacketsize=%a\tBps=%B\tnetworkload=%l\n" -F 1 > networklogs.txt
+
+
+
+
+
+
+
 $ cd output
 $ sudo yum install iptraf
-$ sudo iptraf-ng -i eth0 -B -L ./netlogs.txt    ## Monitors all IP Traffic
-$ sudo iptraf-ng -z eth0 -B -L ./netlogs2    ## Monitors packet sizes
-$ sudo iptraf-ng -d eth0 -B -L ./netlogs3    ## Unsure, Monitors detailed, ??? 
+$ sudo iptraf-ng -i eth0 -B -L ./IPtraffic    ## Monitors all IP Traffic
+
+sudo pkill iptraf-ng
 
 https://www.systutorials.com/docs/linux/man/8-iptraf-ng/
 
@@ -60,6 +75,27 @@ $ sudo iptraf-ng -i eth0 -B -L ./netlogs     ## Monitors all IP Traffic
 $ sudo iptraf-ng -z eth0 -B -L /output/netlogs2    ## Monitors packet sizes
 $ sudo iptraf-ng -d eth0 -B -L /output/netlogs3    ## Unsure, Monitors detailed, ??? 
 
+
+wget https://frenchfries.net/paul/tcpstat/tcpstat-1.5.tar.gz
+cd tcpstat-1.5.tar.gz
+sudo yum install gcc
+sudo yum install libpcap*
+./configure
+make
+sudo make install
+sudo chmod u+s /usr/local/bin/tcpstat
+tcpstat -i eth0 -f 'tcp port 8888' -e -o "Time:%S\tTCPpackets=%T\tbytes=%N\tavgpacketsize=%a\tBps=%B\tnetworkload=%l\n" -F 1 > test.txt
+
+
+
+tcpstat -i eth0 -e -o "Time:%S\tTCPpackets=%T\tbytes=%N\tavgpacketsize=%a\tBps=%B\tnetworkload=%l\n" -F 1 > test.txt
+
+
+tcpstat -i eth0 -f 'tcp port 8888' -e -o "Time:%S\tTCPpackets=%T\tbytes=%N\tavgpacketsize=%a\tBps=%B\tnetworkload=%l\n" -F 1 > test.txt
+
+
+
+####NOTE: Look into TCPstat as an alternative  #https://linux.die.net/man/1/tcpstat
 
 
 ######### Monitoring TCP traffic on port 8888
