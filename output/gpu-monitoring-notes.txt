@@ -12,7 +12,7 @@ $ sudo pkill tcpstat
 ##### FINAL TESTED LINE ####### 
 $ cd output
 $ sudo chmod 777 ./
-$ sudo nvidia-smi dmon -s tu -o DT -d 1 -f "nvidi-logs" &
+$ sudo nvidia-smi dmon -s tu -o DT -d 1 -f "nvidia-logs" &
 ##### FINAL TEST LINE #########
 $ cd output
 $ vmstat 1 -t > systemlogs.txt &
