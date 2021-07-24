@@ -25,8 +25,8 @@ Worker 2:  $ python3 ddp1node4gpu.py -n 4 -g 4 -nr 2 --epochs 20 -b 25
 Worker 3:  $ python3 ddp1node4gpu.py -n 4 -g 4 -nr 3 --epochs 20 -b 25
 
 Testing 2 nodes:
-Master:    $ python3 ddp4node4gpu.py -n 2 -g 1 -nr 0 --epochs 20 -b 25
-Worker 1:  $ python3 ddp4node4gpu.py -n 2 -g 1 -nr 1 --epochs 20 -b 25
+Master:    $ python3 ddp4node4gpu.py -n 2 -g 1 -nr 0 --epochs 20 -b 21
+Worker 1:  $ python3 ddp4node4gpu.py -n 2 -g 1 -nr 1 --epochs 20 -b 21
 
 Optional env variables for debugging:
 export NCCL_DEBUG=INFO
@@ -37,8 +37,8 @@ To recursively copy to s3:
 aws s3 cp output s3://ddp-results/2node-2gpu/node0/ --recursive
 aws s3 cp output s3://ddp-results/2node-2gpu/node1/ --recursive
 
-aws s3 cp output s3://ddp-results/2node-2gpu/node0/bucket-25-0 --recursive
-aws s3 cp output s3://ddp-results/2node-2gpu/node1/bucket-25-0 --recursive
+aws s3 cp output s3://ddp-results/2node-2gpu/node0/bucket-21-0 --recursive
+aws s3 cp output s3://ddp-results/2node-2gpu/node1/bucket-21-0 --recursive
 
 
 aws s3 cp output s3://ddp-results/2node-2gpu/node2/ --recursive

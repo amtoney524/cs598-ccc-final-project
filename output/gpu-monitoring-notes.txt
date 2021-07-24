@@ -6,7 +6,13 @@ https://developer.download.nvidia.com/compute/DCGM/docs/nvidia-smi-367.38.pdf
 #### Kill Processes After Training complete #######
 $ sudo pkill vmstat
 $ sudo pkill nvidia-smi
+$ sudo pkill iptraf-ng
+$ sudo pkill python
+
+
+
 $ sudo pkill tcpstat
+
 
 
 ##### FINAL TESTED LINE ####### 
@@ -17,6 +23,12 @@ $ sudo nvidia-smi dmon -s tu -o DT -d 1 -f "nvidia-logs" &
 $ cd output
 $ vmstat 1 -t > systemlogs.txt &
 ####### FINAL TESTED LINE ########
+$ cd output
+$ sudo iptraf-ng -i eth0 -B -L ./netlogs &
+
+
+
+
 wget https://frenchfries.net/paul/tcpstat/tcpstat-1.5.tar.gz
 tar -zxvf tcpstat-1.5.tar.gz
 cd tcpstat-1.5
@@ -27,7 +39,8 @@ make
 sudo make install
 sudo chmod u+s /usr/local/bin/tcpstat
 tcpstat -i eth0 -f 'tcp port 8888' -e -o "Time:%S\tTCPpackets=%T\tbytes=%N\tavgpacketsize=%a\tBps=%B\tnetworkload=%l\n" -F 1 > networklogs.txt &
-
+$ sudo yum install iptraf
+   ## Monitors all IP Traffic
 
 
 
