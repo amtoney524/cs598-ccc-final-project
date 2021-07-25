@@ -65,7 +65,7 @@ $ cd output
 $ vmstat 1 -t > output/node-logs-rank-n.txt
 ####### TESTING FILEPATHS #######
 $ sudo yum install iptraf
-$ sudo iptraf-ng -i eth0 -B -L ./netlogs     ## Monitors all IP Traffic
+$ sudo iptraf-ng -i eth0 -B -L ./netlogs &    ## Monitors all IP Traffic
 $ sudo iptraf-ng -z eth0 -B -L /output/netlogs2    ## Monitors packet sizes
 $ sudo iptraf-ng -d eth0 -B -L /output/netlogs3    ## Unsure, Monitors detailed, ??? 
 

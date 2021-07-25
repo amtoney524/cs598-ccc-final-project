@@ -141,7 +141,7 @@ def train(gpu, args):
         rank = args.nr * args.gpus + gpu	                          
         dist.init_process_group(                                   
             backend='nccl',                                         
-            init_method='tcp://3.91.19.29:8888',  # 'tcp://<master ip addr>:8888'                               
+            init_method='tcp://34.201.5.250:8888',  # 'tcp://<master ip addr>:8888'                               
             world_size=args.world_size,                              
             rank=rank                                               
         )
@@ -211,62 +211,132 @@ def train(gpu, args):
             running_prec = 0.0
             running_rec = 0.0
             running_f1 = 0.0
-
+            
+            
             for i, (images, labels) in enumerate(phase_dict[phase]):
-                images = images.cuda(non_blocking=True)
-                labels = labels.cuda(non_blocking=True)
-                optimizer.zero_grad()
+                if i < len(phase_dict)-1:
+                    with model.no_sync():
 
-                # Forward pass
-                outputs = model(images)
-                loss = criterion(outputs, labels)
+                        images = images.cuda(non_blocking=True)
+                        labels = labels.cuda(non_blocking=True)
+                        optimizer.zero_grad()
 
-                # track history if only in train
-                with torch.set_grad_enabled(is_train_phase):
+                        # Forward pass
+                        outputs = model(images)
+                        loss = criterion(outputs, labels)
+
+                        # track history if only in train
+                        with torch.set_grad_enabled(is_train_phase):
+                            outputs = model(images)
+                            _, preds = torch.max(outputs, 1)
+                            loss = criterion(outputs, labels)
+
+                            ####### TODO: Optimization
+                            # >>> model = torch.nn.parallel.DistributedDataParallel(model, pg)
+                            # >>> with model.no_sync():
+                            # >>>   for input in inputs:
+                            # >>>     model(input).backward()  # no synchronization, accumulate grads
+                            # >>> model(another_input).backward()  # synchronize grads
+
+                            # backward + optimize only if in training phase
+                            if is_train_phase:
+                                loss.backward()
+                                optimizer.step()
+
+                        # statistics
+                        running_loss += loss.item() * images.size(0)
+                        running_corrects += torch.sum(preds == labels.data)
+
+                        cur_acc = torch.sum(preds == labels.data).double() / BATCH_SIZE
+
+                        t = datetime.now(timezone.utc).isoformat() + ' UTC'
+                        print_write(t, f)
+                        s = f'\nNode: {args.nr}\n'
+                        print_write(s,f)
+                        s = f"\npreds: {preds}\n"
+                        print_write(s, f)
+                        s = f"label: {labels.data}\n"
+                        print_write(s, f)
+                        s = f"{epoch+1}-th epoch, {i+1}-th batch (size={len(labels)}), {phase} acc={cur_acc}\n"
+                        print_write(s, f)
+
+                        if is_train_phase:
+                            train_acc.append(cur_acc)
+                        else:
+                            valid_acc.append(cur_acc)
+
+                        epoch_loss = running_loss / size
+                        epoch_acc = running_corrects.double() / size
+
+                        s = f'{phase} Loss: {epoch_loss} Acc: {epoch_acc} \n\n'
+                        print_write(s,f)
+
+                        # deep copy the model
+                        if (not is_train_phase) and (epoch_acc > best_acc):
+                            best_acc = epoch_acc
+                            best_epoch = epoch
+                            best_model_wts = copy.deepcopy(model.state_dict())
+                
+                else:
+                    images = images.cuda(non_blocking=True)
+                    labels = labels.cuda(non_blocking=True)
+                    optimizer.zero_grad()
+
+                    # Forward pass
                     outputs = model(images)
-                    _, preds = torch.max(outputs, 1)
                     loss = criterion(outputs, labels)
 
-                    # backward + optimize only if in training phase
+                    # track history if only in train
+                    with torch.set_grad_enabled(is_train_phase):
+                        outputs = model(images)
+                        _, preds = torch.max(outputs, 1)
+                        loss = criterion(outputs, labels)
+
+                        ####### TODO: Optimization
+                        # >>> model = torch.nn.parallel.DistributedDataParallel(model, pg)
+                        # >>> with model.no_sync():
+                        # >>>   for input in inputs:
+                        # >>>     model(input).backward()  # no synchronization, accumulate grads
+                        # >>> model(another_input).backward()  # synchronize grads
+
+                        # backward + optimize only if in training phase
+                        if is_train_phase:
+                            loss.backward()
+                            optimizer.step()
+
+                    # statistics
+                    running_loss += loss.item() * images.size(0)
+                    running_corrects += torch.sum(preds == labels.data)
+
+                    cur_acc = torch.sum(preds == labels.data).double() / BATCH_SIZE
+
+                    t = datetime.now(timezone.utc).isoformat() + ' UTC'
+                    print_write(t, f)
+                    s = f'\nNode: {args.nr}\n'
+                    print_write(s,f)
+                    s = f"\npreds: {preds}\n"
+                    print_write(s, f)
+                    s = f"label: {labels.data}\n"
+                    print_write(s, f)
+                    s = f"{epoch+1}-th epoch, {i+1}-th batch (size={len(labels)}), {phase} acc={cur_acc}\n"
+                    print_write(s, f)
+
                     if is_train_phase:
-                        loss.backward()
-                        optimizer.step()
+                        train_acc.append(cur_acc)
+                    else:
+                        valid_acc.append(cur_acc)
 
-                # statistics
-                running_loss += loss.item() * images.size(0)
-                running_corrects += torch.sum(preds == labels.data)
+                    epoch_loss = running_loss / size
+                    epoch_acc = running_corrects.double() / size
 
-                cur_acc = torch.sum(preds == labels.data).double() / BATCH_SIZE
+                    s = f'{phase} Loss: {epoch_loss} Acc: {epoch_acc} \n\n'
+                    print_write(s,f)
 
-                t = datetime.now(timezone.utc).isoformat() + ' UTC'
-                print_write(t, f)
-                s = f'\nNode: {args.nr}\n'
-                print_write(s,f)
-                s = f"\npreds: {preds}\n"
-                print_write(s, f)
-                s = f"label: {labels.data}\n"
-                print_write(s, f)
-                s = f"{epoch+1}-th epoch, {i+1}-th batch (size={len(labels)}), {phase} acc={cur_acc}\n"
-                print_write(s, f)
-
-                if is_train_phase:
-                    train_acc.append(cur_acc)
-                else:
-                    valid_acc.append(cur_acc)
-
-                epoch_loss = running_loss / size
-                epoch_acc = running_corrects.double() / size
-
-                s = f'{phase} Loss: {epoch_loss} Acc: {epoch_acc} \n\n'
-                print_write(s,f)
-
-                # deep copy the model
-                if (not is_train_phase) and (epoch_acc > best_acc):
-                    best_acc = epoch_acc
-                    best_epoch = epoch
-                    best_model_wts = copy.deepcopy(model.state_dict())
-
-
+                    # deep copy the model
+                    if (not is_train_phase) and (epoch_acc > best_acc):
+                        best_acc = epoch_acc
+                        best_epoch = epoch
+                        best_model_wts = copy.deepcopy(model.state_dict())
 
     end_datetime = datetime.now(timezone.utc)
     end_datetime_str = end_datetime.isoformat() + ' UTC'
