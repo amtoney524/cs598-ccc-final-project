@@ -59,10 +59,10 @@ https://www.systutorials.com/docs/linux/man/8-iptraf-ng/
 ##### TESTING FILEPATHS ####### 
 $ cd output
 $ sudo chmod 777 ./
-$ sudo nvidia-smi dmon -s tu -o DT -d 1 -f output/nvidia-logs-rank-n
+$ sudo nvidia-smi dmon -s tu -o DT -d 1 -f output/nvidia-logs &
 ##### TESTING FILEPATHS #########
 $ cd output
-$ vmstat 1 -t > output/node-logs-rank-n.txt
+$ vmstat 1 -t > output/node-logs-rank-n.txt &
 ####### TESTING FILEPATHS #######
 $ sudo yum install iptraf
 $ sudo iptraf-ng -i eth0 -B -L ./netlogs &    ## Monitors all IP Traffic
