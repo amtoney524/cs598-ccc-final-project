@@ -30,10 +30,10 @@ export NCCL_DEBUG_SUBSYS=ALL
 
 To recursively copy to s3:
 
-aws s3 cp output s3://ddp-results/2node-2gpu/node0/ --recursive
-aws s3 cp output s3://ddp-results/2node-2gpu/node1/ --recursive
-aws s3 cp output s3://ddp-results/2node-2gpu/node2/ --recursive
-aws s3 cp output s3://ddp-results/2node-2gpu/node3/ --recursive
+aws s3 cp output s3://ddp-results/4node-4gpu-enhanced/node0/ --recursive
+aws s3 cp output s3://ddp-results/4node-4gpu-enhanced/node1/ --recursive
+aws s3 cp output s3://ddp-results/4node-4gpu-enhanced/node2/ --recursive
+aws s3 cp output s3://ddp-results/4node-4gpu-enhanced/node3/ --recursive
 
 """
 
