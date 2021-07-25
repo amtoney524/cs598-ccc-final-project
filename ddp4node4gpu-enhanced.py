@@ -19,10 +19,10 @@ $ export MASTER_PORT=8888
 $ ssh -i "Jon-ashley-nodirbek-keypair.pem" ec2-user@
 
 One each node in the cluster...
-Master:    $ python3 ddp1node4gpu.py -n 4 -g 4 -nr 0 --epochs 20 -b 25
-Worker 1:  $ python3 ddp1node4gpu.py -n 4 -g 4 -nr 1 --epochs 20 -b 25
-Worker 2:  $ python3 ddp1node4gpu.py -n 4 -g 4 -nr 2 --epochs 20 -b 25
-Worker 3:  $ python3 ddp1node4gpu.py -n 4 -g 4 -nr 3 --epochs 20 -b 25
+Master:    $ python3 ddp4node4gpu-enhanced.py -n 4 -g 1 -nr 0 --epochs 20 -b 25
+Worker 1:  $ python3 ddp4node4gpu-enhanced.py -n 4 -g 1 -nr 1 --epochs 20 -b 25
+Worker 2:  $ python3 ddp4node4gpu-enhanced.py -n 4 -g 1 -nr 2 --epochs 20 -b 25
+Worker 3:  $ python3 ddp4node4gpu-enhanced.py -n 4 -g 1 -nr 3 --epochs 20 -b 25
 
 Optional env variables for debugging:
 export NCCL_DEBUG=INFO
@@ -141,7 +141,7 @@ def train(gpu, args):
         rank = args.nr * args.gpus + gpu	                          
         dist.init_process_group(                                   
             backend='nccl',                                         
-            init_method='tcp://18.207.100.169:8888',  # 'tcp://<master ip addr>:8888'                               
+            init_method='tcp://18.206.238.23:8888',  # 'tcp://<master ip addr>:8888'                               
             world_size=args.world_size,                              
             rank=rank                                               
         )
